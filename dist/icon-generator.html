@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="512" height="512"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+// Orange background (iPhone calculator icon color)
+ctx.fillStyle = '#FF9500';
+ctx.beginPath();
+ctx.roundRect(0, 0, 512, 512, 110);
+ctx.fill();
+
+// Calculator display area (dark)
+ctx.fillStyle = '#1C1C1E';
+ctx.beginPath();
+ctx.roundRect(50, 50, 412, 120, 20);
+ctx.fill();
+
+// Display text
+ctx.fillStyle = '#FFFFFF';
+ctx.font = 'bold 80px -apple-system, SF Pro Display, sans-serif';
+ctx.textAlign = 'right';
+ctx.fillText('0', 440, 140);
+
+// Button rows
+const buttons = [
+  ['AC', '+', '−', '÷'],
+  ['7', '8', '9', '×'],
+  ['4', '5', '6', '−'],
+  ['1', '2', '3', '+'],
+];
+
+const colors = {
+  'AC': '#A5A5A5',
+  '+': '#FF9500',
+  '−': '#FF9500',
+  '÷': '#FF9500',
+  '×': '#FF9500',
+  '1': '#333333',
+  '2': '#333333',
+  '3': '#333333',
+  '4': '#333333',
+  '5': '#333333',
+  '6': '#333333',
+  '7': '#333333',
+  '8': '#333333',
+  '9': '#333333',
+};
+
+const textColors = {
+  'AC': '#000000',
+  '+': '#FFFFFF',
+  '−': '#FFFFFF',
+  '÷': '#FFFFFF',
+  '×': '#FFFFFF',
+  '1': '#FFFFFF',
+  '2': '#FFFFFF',
+  '3': '#FFFFFF',
+  '4': '#FFFFFF',
+  '5': '#FFFFFF',
+  '6': '#FFFFFF',
+  '7': '#FFFFFF',
+  '8': '#FFFFFF',
+  '9': '#FFFFFF',
+};
+
+let startY = 200;
+const btnSize = 90;
+const gap = 20;
+const startX = 50;
+
+buttons.forEach((row, ri) => {
+  row.forEach((btn, ci) => {
+    const x = startX + ci * (btnSize + gap);
+    const y = startY + ri * (btnSize + gap);
+    
+    ctx.fillStyle = colors[btn];
+    ctx.beginPath();
+    ctx.arc(x + btnSize/2, y + btnSize/2, btnSize/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = textColors[btn];
+    ctx.font = '40px -apple-system, SF Pro Display, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(btn, x + btnSize/2, y + btnSize/2 + 2);
+  });
+});
+
+// Zero button (wider)
+ctx.fillStyle = '#333333';
+ctx.beginPath();
+ctx.roundRect(startX, startY + 4 * (btnSize + gap), btnSize * 2 + gap, btnSize, btnSize/2);
+ctx.fill();
+
+ctx.fillStyle = '#FFFFFF';
+ctx.font = '40px -apple-system, SF Pro Display, sans-serif';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('0', startX + btnSize, startY + 4 * (btnSize + gap) + btnSize/2);
+
+// Dot
+ctx.fillStyle = '#333333';
+ctx.beginPath();
+ctx.arc(startX + btnSize * 2 + gap + btnSize/2, startY + 4 * (btnSize + gap) + btnSize/2, btnSize/2, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = '#FFFFFF';
+ctx.fillText('.', startX + btnSize * 2 + gap + btnSize/2, startY + 4 * (btnSize + gap) + btnSize/2 + 2);
+
+// Equals
+ctx.fillStyle = '#FF9500';
+ctx.beginPath();
+ctx.arc(startX + 3 * (btnSize + gap) + btnSize/2, startY + 4 * (btnSize + gap) + btnSize/2, btnSize/2, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = '#FFFFFF';
+ctx.fillText('=', startX + 3 * (btnSize + gap) + btnSize/2, startY + 4 * (btnSize + gap) + btnSize/2 + 2);
+
+console.log('Canvas drawn');
+</script>
+</body>
+</html>

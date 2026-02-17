@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Apple Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calculator">
+  
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  
+  <title>iPhone Calculator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      height: 100%;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior: none;
+    }
+
+    .calculator {
+      width: 100%;
+      max-width: 430px;
+      padding: 8px;
+      padding-bottom: 20px;
+      touch-action: manipulation;
+    }
+
+    .display {
+      height: 187px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      padding: 8px 24px 20px;
+      margin-bottom: 8px;
+    }
+
+    .display-text {
+      font-size: 96px;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: -4px;
+      line-height: 1;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: font-size 0.15s ease;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 0 12px;
+    }
+
+    .btn {
+      aspect-ratio: 1;
+      max-height: 91px;
+      border-radius: 50%;
+      border: none;
+      font-size: 36px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background-color 0.1s ease, transform 0.05s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+      transition: background-color 0.1s ease;
+    }
+
+    .btn:active::after {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-number {
+      background-color: #333333;
+      color: #fff;
+    }
+
+    .btn-number::after:active {
+      background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .btn-function {
+      background-color: #a5a5a5;
+      color: #000;
+      font-size: 32px;
+    }
+
+    .btn-function::after:active {
+      background-color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .btn-operator {
+      background-color: #ff9f0a;
+      color: #fff;
+      font-size: 40px;
+    }
+
+    .btn-operator::after:active {
+      background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .btn-zero {
+      grid-column: span 2;
+      aspect-ratio: 2.08/1;
+      max-height: 91px;
+      border-radius: 44px;
+      justify-content: flex-start;
+      padding-left: 36px;
+      font-size: 36px;
+    }
+
+    .btn-ac {
+      background-color: #a5a5a5;
+      color: #000;
+      font-size: 32px;
+    }
+
+    /* Active operator state */
+    .btn-operator.active {
+      background-color: #fff;
+      color: #ff9f0a;
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transform: scale(0);
+      animation: ripple 0.4s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(2.5);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .btn {
+        font-size: 28px;
+      }
+      .btn-operator {
+        font-size: 32px;
+      }
+      .btn-function {
+        font-size: 26px;
+      }
+      .btn-zero {
+        padding-left: 28px;
+        font-size: 28px;
+      }
+      .display-text {
+        font-size: 72px;
+      }
+    }
+
+    /* Prevent pinch zoom */
+    @viewport {
+      width: device-width;
+      min-width: 100%;
+      max-width: 100%;
+      min-height: 100%;
+      max-height: 100%;
+      user-zoom: fixed;
+      orientation: lock;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display">
+      <div class="display-text" id="display">0</div>
+    </div>
+    <div class="buttons">
+      <button class="btn btn-function btn-ac" data-action="clear">AC</button>
+      <button class="btn btn-function" data-action="negate">+/−</button>
+      <button class="btn btn-function" data-action="percent">%</button>
+      <button class="btn btn-operator" data-action="divide">÷</button>
+      
+      <button class="btn btn-number" data-value="7">7</button>
+      <button class="btn btn-number" data-value="8">8</button>
+      <button class="btn btn-number" data-value="9">9</button>
+      <button class="btn btn-operator" data-action="multiply">×</button>
+      
+      <button class="btn btn-number" data-value="4">4</button>
+      <button class="btn btn-number" data-value="5">5</button>
+      <button class="btn btn-number" data-value="6">6</button>
+      <button class="btn btn-operator" data-action="subtract">−</button>
+      
+      <button class="btn btn-number" data-value="1">1</button>
+      <button class="btn btn-number" data-value="2">2</button>
+      <button class="btn btn-number" data-value="3">3</button>
+      <button class="btn btn-operator" data-action="add">+</button>
+      
+      <button class="btn btn-number btn-zero" data-value="0">0</button>
+      <button class="btn btn-number" data-value=".">.</button>
+      <button class="btn btn-operator" data-action="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    class Calculator {
+      constructor() {
+        this.display = document.getElementById('display');
+        this.currentValue = '0';
+        this.previousValue = null;
+        this.operator = null;
+        this.waitingForOperand = false;
+        
+        // Hidden mode state
+        this.hiddenMode = false;
+        this.hiddenPhase = 0;
+        this.hiddenEightCount = 0;
+        this.firstNumber = null;
+        this.secondNumber = null;
+        this.tValue = null;
+        this.zValue = null;
+        
+        this.init();
+      }
+
+      init() {
+        document.querySelectorAll('.btn').forEach(btn => {
+          btn.addEventListener('click', (e) => this.handleClick(e));
+        });
+
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+      }
+
+      handleKeyboard(e) {
+        const keyMap = {
+          '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+          '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+          '.': '.', '/': 'divide', '*': 'multiply', '-': 'subtract',
+          '+': 'add', '=': 'equals', 'Enter': 'equals', 'Escape': 'clear',
+          '%': 'percent'
+        };
+
+        const action = keyMap[e.key];
+        if (action !== undefined) {
+          e.preventDefault();
+          const btn = document.querySelector(action.length === 1 && !isNaN(action)
+            ? `[data-value="${action}"]`
+            : `[data-action="${action}"]`);
+          if (btn) btn.click();
+        }
+      }
+
+      handleClick(e) {
+        const btn = e.target;
+        const value = btn.dataset.value;
+        const action = btn.dataset.action;
+
+        // In hidden mode phase 3 (z shown), ignore everything except =
+        if (this.hiddenMode && this.hiddenPhase === 3) {
+          if (action === 'equals') {
+            this.handleEquals();
+          }
+          return;
+        }
+
+        if (value !== undefined) {
+          this.inputNumber(value);
+        } else if (action) {
+          this.handleAction(action, btn);
+        }
+      }
+
+      inputNumber(num) {
+        // In hidden mode phase 4 (waiting for z) and phase 5 (z shown), ignore all number inputs
+        if (this.hiddenMode && (this.hiddenPhase === 4 || this.hiddenPhase === 5)) {
+          return;
+        }
+
+        if (this.waitingForOperand) {
+          this.currentValue = num === '.' ? '0.' : num;
+          this.waitingForOperand = false;
+        } else {
+          if (num === '.') {
+            if (this.currentValue.includes('.')) return;
+            this.currentValue += '.';
+          } else {
+            if (this.currentValue === '0' && num !== '.') {
+              this.currentValue = num;
+            } else {
+              if (this.currentValue.replace(/[^0-9]/g, '').length < 9) {
+                this.currentValue += num;
+              }
+            }
+          }
+        }
+
+        // Check for hidden mode trigger (8 pressed consecutively)
+        if (num === '8') {
+          this.hiddenEightCount++;
+          if (this.hiddenEightCount >= 8) {
+            this.enterHiddenMode();
+          }
+        } else {
+          this.hiddenEightCount = 0;
+        }
+
+        this.updateDisplay();
+      }
+
+      enterHiddenMode() {
+        this.hiddenMode = true;
+        this.hiddenPhase = 1;
+        this.hiddenEightCount = 0;
+        this.firstNumber = null;
+        this.secondNumber = null;
+        this.tValue = null;
+        this.zValue = null;
+        
+        this.currentValue = '0';
+        this.previousValue = null;
+        this.operator = null;
+        this.waitingForOperand = false;
+        
+        this.updateDisplay();
+      }
+
+      getBeijingTime() {
+        const now = new Date();
+        const beijingOffset = 8 * 60 * 60 * 1000;
+        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+        const beijingTime = new Date(utcMs + beijingOffset);
+        
+        beijingTime.setSeconds(beijingTime.getSeconds() + 20);
+        
+        const month = beijingTime.getMonth() + 1;
+        const day = beijingTime.getDate();
+        const hours = beijingTime.getHours();
+        const minutes = beijingTime.getMinutes();
+        
+        return parseInt(`${month}${day}${hours}${minutes}`, 10);
+      }
+
+      handleAction(action, btn) {
+        // In hidden mode phase 4 (z shown), ignore everything except =
+        if (this.hiddenMode && this.hiddenPhase === 4) {
+          if (action === 'equals') {
+            this.handleEquals();
+          }
+          return;
+        }
+
+        const operators = document.querySelectorAll('.btn-operator');
+        
+        switch(action) {
+          case 'clear':
+            this.clear();
+            break;
+          case 'negate':
+            this.negate();
+            break;
+          case 'percent':
+            this.percent();
+            break;
+          case 'add':
+            this.setOperator('+', operators);
+            break;
+          case 'subtract':
+            this.setOperator('−', operators);
+            break;
+          case 'multiply':
+            this.setOperator('×', operators);
+            break;
+          case 'divide':
+            this.setOperator('÷', operators);
+            break;
+          case 'equals':
+            this.handleEquals();
+            operators.forEach(op => op.classList.remove('active'));
+            break;
+        }
+      }
+
+      setOperator(op, operators) {
+        // Hidden mode handling
+        if (this.hiddenMode) {
+          if (this.hiddenPhase === 1) {
+            // First number entered, pressing first +
+            this.firstNumber = parseFloat(this.currentValue);
+            this.operator = '+';
+            this.previousValue = this.currentValue;
+            this.waitingForOperand = true;
+            
+            // Calculate t (Beijing time + 20 seconds)
+            this.tValue = this.getBeijingTime();
+            
+            // Go to phase 2: can enter second number
+            this.hiddenPhase = 2;
+            
+            operators.forEach(o => o.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-action="add"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            return;
+          } else if (this.hiddenPhase === 2) {
+            // Second number entered, pressing second +
+            this.secondNumber = parseFloat(this.currentValue);
+            
+            // First show X + Y
+            const x = this.firstNumber;
+            const y = this.secondNumber;
+            const sum = x + y;
+            this.currentValue = sum.toString();
+            this.updateDisplay();
+            
+            // Go to phase 3: show sum, then start timer
+            this.hiddenPhase = 3;
+            
+            // Start 3 second timer to show z
+            setTimeout(() => {
+              if (this.hiddenMode && this.hiddenPhase === 3) {
+                this.zValue = this.tValue - x - y;
+                this.currentValue = this.zValue.toString();
+                this.hiddenPhase = 4; // z shown, block input except =
+                this.updateDisplay();
+              }
+            }, 3000);
+            
+            return;
+          }
+        }
+
+        // Normal operator handling
+        if (this.previousValue !== null && !this.waitingForOperand) {
+          this.calculate();
+        }
+        this.operator = op;
+        this.previousValue = this.currentValue;
+        this.waitingForOperand = true;
+        
+        operators.forEach(o => o.classList.remove('active'));
+        const activeBtn = document.querySelector(`[data-action="${this.getActionFromOperator(op)}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+
+      getActionFromOperator(op) {
+        const map = {
+          '+': 'add',
+          '−': 'subtract',
+          '×': 'multiply',
+          '÷': 'divide'
+        };
+        return map[op];
+      }
+
+      handleEquals() {
+        // Hidden mode - show t
+        if (this.hiddenMode && this.hiddenPhase === 4) {
+          this.currentValue = this.tValue.toString();
+          this.updateDisplay();
+          
+          setTimeout(() => {
+            this.exitHiddenMode();
+          }, 500);
+          return;
+        }
+
+        // Normal calculation
+        this.calculate();
+      }
+
+      calculate() {
+        if (this.operator === null || this.previousValue === null) return;
+        
+        const prev = parseFloat(this.previousValue);
+        const curr = parseFloat(this.currentValue);
+        let result;
+
+        switch(this.operator) {
+          case '+':
+            result = prev + curr;
+            break;
+          case '−':
+            result = prev - curr;
+            break;
+          case '×':
+            result = prev * curr;
+            break;
+          case '÷':
+            if (curr === 0) {
+              this.currentValue = 'Error';
+              this.operator = null;
+              this.previousValue = null;
+              this.waitingForOperand = false;
+              this.updateDisplay();
+              return;
+            }
+            result = prev / curr;
+            break;
+        }
+
+        if (!Number.isInteger(result)) {
+          result = parseFloat(result.toPrecision(10));
+        }
+        
+        if (Math.abs(result) >= 1e9 || (Math.abs(result) < 1e-6 && result !== 0)) {
+          this.currentValue = result.toExponential(5);
+        } else {
+          this.currentValue = result.toString();
+        }
+
+        this.operator = null;
+        this.previousValue = null;
+        this.waitingForOperand = true;
+        this.updateDisplay();
+      }
+
+      exitHiddenMode() {
+        this.hiddenMode = false;
+        this.hiddenPhase = 0;
+        
+        this.operator = null;
+        this.previousValue = null;
+        this.waitingForOperand = true;
+      }
+
+      clear() {
+        this.currentValue = '0';
+        this.previousValue = null;
+        this.operator = null;
+        this.waitingForOperand = false;
+        
+        this.hiddenMode = false;
+        this.hiddenPhase = 0;
+        this.hiddenEightCount = 0;
+        this.firstNumber = null;
+        this.secondNumber = null;
+        this.tValue = null;
+        this.zValue = null;
+        
+        document.querySelectorAll('.btn-operator').forEach(op => {
+          op.classList.remove('active');
+        });
+        this.updateDisplay();
+      }
+
+      negate() {
+        if (this.currentValue === '0' || this.currentValue === 'Error') return;
+        if (this.currentValue.startsWith('-')) {
+          this.currentValue = this.currentValue.slice(1);
+        } else {
+          this.currentValue = '-' + this.currentValue;
+        }
+        this.updateDisplay();
+      }
+
+      percent() {
+        if (this.currentValue === '0' || this.currentValue === 'Error') return;
+        this.currentValue = (parseFloat(this.currentValue) / 100).toString();
+        this.updateDisplay();
+      }
+
+      updateDisplay() {
+        let displayValue = this.currentValue;
+        
+        const len = displayValue.length;
+        if (len > 12) {
+          const num = parseFloat(displayValue);
+          if (Math.abs(num) >= 1e9 || (Math.abs(num) < 1e-6 && num !== 0)) {
+            displayValue = num.toExponential(4);
+          }
+        }
+        
+        this.display.textContent = displayValue;
+        
+        const len2 = displayValue.length;
+        if (len2 > 9) {
+          this.display.style.fontSize = '48px';
+        } else if (len2 > 7) {
+          this.display.style.fontSize = '60px';
+        } else if (len2 > 5) {
+          this.display.style.fontSize = '76px';
+        } else {
+          this.display.style.fontSize = '96px';
+        }
+      }
+    }
+
+    const calculator = new Calculator();
+  </script>
+</body>
+</html>
